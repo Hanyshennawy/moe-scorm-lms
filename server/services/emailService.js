@@ -1,8 +1,18 @@
 const nodemailer = require('nodemailer');
 const db = require('../config/database');
 
+// Check if email is configured
+const isEmailConfigured = () => {
+  return !!(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+};
+
 // Create transporter
 const createTransporter = () => {
+  if (!isEmailConfigured()) {
+    console.warn('⚠️ Email not configured - SMTP_USER and SMTP_PASSWORD required');
+    return null;
+  }
+  
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT) || 587,
@@ -151,6 +161,14 @@ const getEmailTemplate = (type, data) => {
 const sendEmail = async (to, type, data, userId = null) => {
   try {
     const transporter = createTransporter();
+    
+    // If email is not configured, log and return success (don't block registration)
+    if (!transporter) {
+      console.log(`📧 Email skipped (not configured): ${type} to ${to}`);
+      await logEmail(userId, type, to, `[SKIPPED] ${type}`, 'skipped', 'Email not configured');
+      return true; // Return true so registration doesn't fail
+    }
+    
     const template = getEmailTemplate(type, data);
 
     const mailOptions = {

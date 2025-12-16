@@ -41,6 +41,8 @@ router.put('/profile', authMiddleware, [
     }
 
     const { name, phone, school, oracle_number, subject_taught } = req.body;
+    
+    console.log('Profile update request:', { userId: req.user.id, name, phone, school, oracle_number, subject_taught });
 
     const result = await db.query(
       `UPDATE users SET 
@@ -52,13 +54,18 @@ router.put('/profile', authMiddleware, [
         updated_at = NOW()
        WHERE id = $6
        RETURNING id, name, email, phone, school, oracle_number, subject_taught, role`,
-      [name, phone, school, oracle_number, subject_taught, req.user.id]
+      [name || null, phone || null, school || null, oracle_number || null, subject_taught || null, req.user.id]
     );
 
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    console.log('Profile updated successfully:', result.rows[0]);
     res.json({ success: true, user: result.rows[0], message: 'Profile updated successfully' });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update profile' });
+    res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
   }
 });
 

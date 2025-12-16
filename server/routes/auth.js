@@ -69,16 +69,19 @@ router.post('/register', registerValidation, async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Check if email is configured
+    const emailConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+    
+    // Generate verification token (only if email is configured)
+    const verificationToken = emailConfigured ? crypto.randomBytes(32).toString('hex') : null;
+    const verificationExpires = emailConfigured ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
 
-    // Create user
+    // Create user (auto-verify if email not configured)
     const result = await db.query(
       `INSERT INTO users (
         name, email, password_hash, phone, school, oracle_number, subject_taught,
-        email_verification_token, email_verification_expires
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        email_verification_token, email_verification_expires, email_verified
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING id, name, email, role`,
       [
         name,
@@ -89,20 +92,29 @@ router.post('/register', registerValidation, async (req, res) => {
         oracle_number,
         subject_taught,
         verificationToken,
-        verificationExpires
+        verificationExpires,
+        !emailConfigured // Auto-verify if email not configured
       ]
     );
 
     const user = result.rows[0];
 
-    // Send verification email
-    await sendVerificationEmail(email, name, verificationToken);
-
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful! Please check your email to verify your account.',
-      user: { id: user.id, name: user.name, email: user.email }
-    });
+    // Send verification email only if configured
+    if (emailConfigured) {
+      await sendVerificationEmail(email, name, verificationToken);
+      res.status(201).json({
+        success: true,
+        message: 'Registration successful! Please check your email to verify your account.',
+        user: { id: user.id, name: user.name, email: user.email }
+      });
+    } else {
+      // Auto-verified - can login immediately
+      res.status(201).json({
+        success: true,
+        message: 'Registration successful! You can now log in.',
+        user: { id: user.id, name: user.name, email: user.email }
+      });
+    }
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ success: false, message: 'Registration failed' });
@@ -180,22 +192,35 @@ router.post('/login', async (req, res, next) => {
   })(req, res, next);
 });
 
+// Check if Microsoft OAuth is configured
+const isMicrosoftConfigured = () => {
+  return !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
+};
+
 // Microsoft OAuth - Initiate
-router.get('/microsoft', passport.authenticate('microsoft', {
-  prompt: 'select_account'
-}));
+router.get('/microsoft', (req, res, next) => {
+  if (!isMicrosoftConfigured()) {
+    return res.status(503).json({
+      success: false,
+      message: 'Microsoft SSO is not configured. Please use email/password login.'
+    });
+  }
+  passport.authenticate('microsoft', { prompt: 'select_account' })(req, res, next);
+});
 
 // Microsoft OAuth - Callback
-router.get('/microsoft/callback',
+router.get('/microsoft/callback', (req, res, next) => {
+  if (!isMicrosoftConfigured()) {
+    return res.redirect(`${process.env.CLIENT_URL || ''}/login?error=microsoft_not_configured`);
+  }
   passport.authenticate('microsoft', { 
     session: false,
     failureRedirect: `${process.env.CLIENT_URL}/login?error=oauth_failed`
-  }),
-  (req, res) => {
+  })(req, res, () => {
     const token = generateToken(req.user);
     res.redirect(`${process.env.CLIENT_URL}/oauth-callback?token=${token}`);
-  }
-);
+  });
+});
 
 // Forgot password
 router.post('/forgot-password', 
