@@ -1,0 +1,30 @@
+# Render Blueprint for SCORM LMS deployment
+databases:
+  - name: scorm-lms-db
+    databaseName: scorm_lms
+    user: scorm_user
+    plan: free
+    region: frankfurt
+
+services:
+  - type: web
+    name: scorm-lms
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && cd client && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: scorm-lms-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CERTIFICATE_SECRET
+        generateValue: true

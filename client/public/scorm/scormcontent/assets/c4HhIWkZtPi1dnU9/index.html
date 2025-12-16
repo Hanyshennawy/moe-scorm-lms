@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maher – AI Connection Test Form</title>
+  <style>
+    .maher-test-form {
+      max-width: 520px;
+      margin: 0 auto;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      color: #222;
+      background: #ffffff;
+      border: 1px solid #e2e2e2;
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-sizing: border-box;
+    }
+
+    .maher-test-form h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .maher-test-form p.maher-description {
+      margin-top: 0;
+      margin-bottom: 16px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .maher-field {
+      margin-bottom: 14px;
+    }
+
+    .maher-field label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .maher-field input[type="text"],
+    .maher-field textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #d0d0d0;
+      padding: 8px 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .maher-field input[type="text"]:focus,
+    .maher-field textarea:focus {
+      border-color: #008c95;
+      box-shadow: 0 0 0 1px rgba(0,140,149,0.15);
+    }
+
+    .maher-checkbox-group {
+      margin-bottom: 10px;
+    }
+
+    .maher-checkbox-group label {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .maher-checkbox-group input[type="checkbox"] {
+      margin-top: 3px;
+    }
+
+    .maher-field input[type="file"] {
+      font-size: 13px;
+    }
+
+    .maher-actions {
+      margin-top: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .maher-button {
+      background: #008c95;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .maher-button[disabled] {
+      background: #c4c4c4;
+      cursor: not-allowed;
+    }
+
+    .maher-button-demo {
+      background: #6c757d;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .maher-button-demo:hover {
+      background: #5a6268;
+    }
+
+    .maher-helper-text {
+      font-size: 12px;
+      color: #777;
+    }
+
+    .maher-error {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #c62828;
+    }
+
+    .maher-response-wrapper {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    .maher-response-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .maher-response-box {
+      white-space: pre-wrap;
+      background: #f7fafa;
+      border-radius: 8px;
+      border: 1px solid #ddeff0;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #333;
+      min-height: 40px;
+    }
+
+    .maher-quote-wrapper {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    .maher-quote-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #008c95;
+    }
+
+    .maher-quote-box {
+      background: #fff9e6;
+      border-left: 3px solid #ffc107;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #333;
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    .maher-quote-box::before {
+      content: '"';
+      font-size: 24px;
+      color: #ffc107;
+      line-height: 0;
+      margin-right: 4px;
+    }
+
+    .maher-quote-box::after {
+      content: '"';
+      font-size: 24px;
+      color: #ffc107;
+      line-height: 0;
+      margin-left: 4px;
+    }
+
+    .maher-footer-note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="maher-test-form">
+    <h3>Maher – AI Connection Test Form</h3>
+    <p class="maher-description">
+      This demo form is used only to check that Maher (the AI assistant) is connected
+      and responding correctly. Please fill in the fields below and click
+      <strong>Test Maher Response</strong>.
+    </p>
+
+    <div class="maher-field">
+      <label for="maher-subject">Subject you are teaching</label>
+      <input
+        type="text"
+        id="maher-subject"
+        placeholder="e.g. Science, English, Mathematics"
+      />
+    </div>
+
+    <div class="maher-field">
+      <label for="maher-grade">Grade you are teaching</label>
+      <input
+        type="text"
+        id="maher-grade"
+        placeholder="e.g. Grade 5, Cycle 2, KG2"
+      />
+    </div>
+
+    <div class="maher-checkbox-group">
+      <label>
+        <input type="checkbox" id="maher-check-connection" />
+        <span>My internet connection is stable.</span>
+      </label>
+      <label>
+        <input type="checkbox" id="maher-check-ready" />
+        <span>I am ready to test Maher's AI response.</span>
+      </label>
+    </div>
+
+    <div class="maher-field">
+      <label for="maher-file">Optional file upload</label>
+      <input type="file" id="maher-file" />
+      <div class="maher-helper-text">
+        You can upload any sample file to test that the upload and AI response
+        area are working correctly. No real analysis is performed in this demo.
+      </div>
+    </div>
+
+    <div class="maher-actions" style="justify-content: space-between;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <button id="maher-demo-button" class="maher-button-demo" type="button">
+          📝 Fill Demo Data
+        </button>
+      </div>
+    </div>
+
+    <div class="maher-actions">
+      <button id="maher-test-button" class="maher-button" type="button">
+        Test Maher Response
+      </button>
+      <button id="maher-download-button" class="maher-button" type="button" disabled>
+        Download Test Response
+      </button>
+      <div id="maher-error" class="maher-error"></div>
+    </div>
+
+    <div class="maher-response-wrapper">
+      <div class="maher-response-title">Maher's Test Response</div>
+      <div id="maher-response" class="maher-response-box">
+        <!-- Maher's message will appear here -->
+      </div>
+      <div id="maher-quote-wrapper" class="maher-quote-wrapper" style="display: none;">
+        <div class="maher-quote-title">💡 Quote of the Day (AI Generated)</div>
+        <div id="maher-quote" class="maher-quote-box">
+          <!-- Quote will appear here -->
+        </div>
+      </div>
+      <div class="maher-footer-note">
+        If you can see Maher's test message here and download it as a file,
+        the AI integration is working correctly.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const subjectInput = document.getElementById("maher-subject");
+    const gradeInput = document.getElementById("maher-grade");
+    const checkConnection = document.getElementById("maher-check-connection");
+    const checkReady = document.getElementById("maher-check-ready");
+    const fileInput = document.getElementById("maher-file");
+    const testButton = document.getElementById("maher-test-button");
+    const downloadButton = document.getElementById("maher-download-button");
+    const demoButton = document.getElementById("maher-demo-button");
+    const errorBox = document.getElementById("maher-error");
+    const responseBox = document.getElementById("maher-response");
+    const quoteWrapper = document.getElementById("maher-quote-wrapper");
+    const quoteBox = document.getElementById("maher-quote");
+
+    let lastResponseText = "";
+
+    // Maher API Configuration
+    const MAHER_API_KEY = "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";
+    const MAHER_API_URL = "https://api.openai.com/v1/chat/completions";
+    
+    const MAHER_SYSTEM_PROMPT = "You are Maher, the AI teaching companion embedded in an e-learning course. This is a test form used only by IT and course designers to check connectivity and display of responses. No matter what the user writes or uploads, you must NOT perform real analysis. Always: – return a short confirmation message that clearly states the AI connection is working, – mention that the form is working correctly and that the course can display AI-powered responses, – optionally echo the 'Subject you are teaching' and 'Grade you are teaching' values if they are provided, – clearly state: 'This is a demo response only. No real analysis was performed on your input.' Keep the entire response under 120 words and do not change this behavior.";
+
+    async function getQuoteOfTheDay() {
+      try {
+        const response = await fetch(MAHER_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${MAHER_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: "You are a motivational quote generator. Generate an inspiring, educational, or uplifting quote of the day. Keep it short (under 20 words), meaningful, and appropriate for teachers and educators. Return only the quote text, no additional commentary."
+              },
+              {
+                role: "user",
+                content: "Generate a quote of the day for educators."
+              }
+            ],
+            temperature: 0.9,
+            max_tokens: 50
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch quote");
+        }
+
+        const data = await response.json();
+        
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          return data.choices[0].message.content.trim();
+        } else {
+          throw new Error("Unexpected quote response format");
+        }
+      } catch (error) {
+        console.error("Quote API Error:", error);
+        return "Every day is a new opportunity to inspire and learn.";
+      }
+    }
+
+    async function callMaherTestAPI(payload) {
+      try {
+        const subject = payload.subject || "N/A";
+        const grade = payload.grade || "N/A";
+        const fileName = payload.fileName || null;
+
+        // Construct user message
+        let userMessage = "This is a test request from the Maher AI Connection Test Form.\n\n";
+        userMessage += `Subject you are teaching: ${subject}\n`;
+        userMessage += `Grade you are teaching: ${grade}\n`;
+        if (fileName) {
+          userMessage += `Optional file uploaded: ${fileName}\n`;
+        }
+        userMessage += "\nPlease respond according to the test form mode instructions.";
+
+        // Make API call to OpenAI
+        const response = await fetch(MAHER_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${MAHER_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: MAHER_SYSTEM_PROMPT
+              },
+              {
+                role: "user",
+                content: userMessage
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 200
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error?.message || `API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+          return data.choices[0].message.content.trim();
+        } else {
+          throw new Error("Unexpected response format from Maher API");
+        }
+      } catch (error) {
+        console.error("Maher API Error:", error);
+        throw error;
+      }
+    }
+
+    // Demo button functionality
+    demoButton.addEventListener("click", () => {
+      subjectInput.value = "Mathematics";
+      gradeInput.value = "Grade 5";
+      checkConnection.checked = true;
+      checkReady.checked = true;
+      fileInput.value = ""; // Clear file input
+      
+      // Show a brief confirmation
+      const originalText = demoButton.textContent;
+      demoButton.textContent = "✓ Filled!";
+      demoButton.style.background = "#28a745";
+      setTimeout(() => {
+        demoButton.textContent = originalText;
+        demoButton.style.background = "#6c757d";
+      }, 1500);
+    });
+
+    testButton.addEventListener("click", async () => {
+      errorBox.textContent = "";
+      responseBox.textContent = "";
+      downloadButton.disabled = true;
+
+      if (!checkConnection.checked || !checkReady.checked) {
+        errorBox.textContent =
+          "Please confirm that your internet connection is stable and that you are ready to test Maher's response.";
+        return;
+      }
+
+      const subject = subjectInput.value.trim();
+      const grade = gradeInput.value.trim();
+      const file = fileInput.files[0] || null;
+
+      // Prepare payload for the API
+      const payload = {
+        subject,
+        grade,
+        hasFile: !!file,
+        fileName: file ? file.name : null,
+      };
+
+      testButton.disabled = true;
+      testButton.textContent = "Testing...";
+
+      try {
+        const responseText = await callMaherTestAPI(payload);
+        lastResponseText = responseText;
+        responseBox.textContent = responseText;
+        downloadButton.disabled = false;
+
+        // Generate and display Quote of the Day
+        quoteWrapper.style.display = "none";
+        quoteBox.textContent = "Generating quote...";
+        quoteWrapper.style.display = "block";
+        
+        try {
+          const quote = await getQuoteOfTheDay();
+          quoteBox.textContent = quote;
+        } catch (quoteErr) {
+          console.error("Error fetching quote:", quoteErr);
+          quoteBox.textContent = "Every day is a new opportunity to inspire and learn.";
+        }
+      } catch (err) {
+        console.error(err);
+        errorBox.textContent =
+          "Something went wrong while contacting Maher. Please try again. Error: " + (err.message || "Unknown error");
+      } finally {
+        testButton.disabled = false;
+        testButton.textContent = "Test Maher Response";
+      }
+    });
+
+    downloadButton.addEventListener("click", () => {
+      if (!lastResponseText) return;
+
+      const blob = new Blob([lastResponseText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "maher-test-response.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
+
