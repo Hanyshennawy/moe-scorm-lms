@@ -65,6 +65,169 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// Combined analytics endpoint (for Analytics page)
+router.get('/analytics', async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    const daysInt = parseInt(days);
+
+    // Summary statistics
+    const summaryResult = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM users WHERE role = 'user') as total_users,
+        (SELECT COUNT(*) FROM users WHERE role = 'user' AND created_at > NOW() - INTERVAL '${daysInt} days') as new_users,
+        (SELECT COUNT(*) FROM user_progress) as total_enrollments,
+        (SELECT COUNT(*) FROM user_progress WHERE created_at > NOW() - INTERVAL '${daysInt} days') as new_enrollments,
+        (SELECT COUNT(*) FROM certificates) as total_certificates,
+        (SELECT COUNT(*) FROM certificates WHERE issue_date > NOW() - INTERVAL '${daysInt} days') as new_certificates,
+        (SELECT ROUND(AVG(total_time)::numeric / 60, 0) FROM user_progress WHERE lesson_status IN ('completed', 'passed')) as avg_time_spent
+    `);
+
+    // Completion rate calculation
+    const completionRateResult = await db.query(`
+      SELECT 
+        COUNT(CASE WHEN lesson_status IN ('completed', 'passed') THEN 1 END)::float / NULLIF(COUNT(*), 0) * 100 as completion_rate
+      FROM user_progress
+    `);
+
+    // User activity over time
+    const userActivityResult = await db.query(`
+      SELECT 
+        TO_CHAR(d.date, 'Mon DD') as date,
+        COALESCE(active.count, 0) as "activeUsers",
+        COALESCE(new_users.count, 0) as "newUsers"
+      FROM (
+        SELECT generate_series(
+          CURRENT_DATE - INTERVAL '${daysInt} days',
+          CURRENT_DATE,
+          '1 day'::interval
+        )::date as date
+      ) d
+      LEFT JOIN (
+        SELECT DATE(last_accessed) as date, COUNT(DISTINCT user_id) as count
+        FROM user_progress
+        WHERE last_accessed > NOW() - INTERVAL '${daysInt} days'
+        GROUP BY DATE(last_accessed)
+      ) active ON d.date = active.date
+      LEFT JOIN (
+        SELECT DATE(created_at) as date, COUNT(*) as count
+        FROM users
+        WHERE role = 'user' AND created_at > NOW() - INTERVAL '${daysInt} days'
+        GROUP BY DATE(created_at)
+      ) new_users ON d.date = new_users.date
+      ORDER BY d.date
+    `);
+
+    // Status distribution
+    const statusResult = await db.query(`
+      SELECT 
+        CASE 
+          WHEN lesson_status IN ('completed', 'passed') THEN 'Completed'
+          WHEN lesson_status = 'incomplete' THEN 'In Progress'
+          ELSE 'Not Started'
+        END as name,
+        COUNT(*) as value
+      FROM (
+        SELECT COALESCE(up.lesson_status, 'not_attempted') as lesson_status
+        FROM users u
+        LEFT JOIN user_progress up ON u.id = up.user_id
+        WHERE u.role = 'user'
+      ) subq
+      GROUP BY 
+        CASE 
+          WHEN lesson_status IN ('completed', 'passed') THEN 'Completed'
+          WHEN lesson_status = 'incomplete' THEN 'In Progress'
+          ELSE 'Not Started'
+        END
+    `);
+
+    // Completion trend
+    const completionTrendResult = await db.query(`
+      SELECT 
+        TO_CHAR(d.date, 'Mon DD') as date,
+        COALESCE(comp.count, 0) as completions
+      FROM (
+        SELECT generate_series(
+          CURRENT_DATE - INTERVAL '${daysInt} days',
+          CURRENT_DATE,
+          '1 day'::interval
+        )::date as date
+      ) d
+      LEFT JOIN (
+        SELECT DATE(completed_at) as date, COUNT(*) as count
+        FROM user_progress
+        WHERE completed_at IS NOT NULL AND completed_at > NOW() - INTERVAL '${daysInt} days'
+        GROUP BY DATE(completed_at)
+      ) comp ON d.date = comp.date
+      ORDER BY d.date
+    `);
+
+    // Score distribution
+    const scoreDistResult = await db.query(`
+      SELECT 
+        CASE 
+          WHEN score_raw >= 90 THEN '90-100'
+          WHEN score_raw >= 80 THEN '80-89'
+          WHEN score_raw >= 70 THEN '70-79'
+          WHEN score_raw >= 60 THEN '60-69'
+          ELSE 'Below 60'
+        END as range,
+        COUNT(*) as count
+      FROM user_progress
+      WHERE score_raw IS NOT NULL
+      GROUP BY 
+        CASE 
+          WHEN score_raw >= 90 THEN '90-100'
+          WHEN score_raw >= 80 THEN '80-89'
+          WHEN score_raw >= 70 THEN '70-79'
+          WHEN score_raw >= 60 THEN '60-69'
+          ELSE 'Below 60'
+        END
+      ORDER BY range DESC
+    `);
+
+    // Schools distribution
+    const schoolsResult = await db.query(`
+      SELECT 
+        COALESCE(school, 'Not Specified') as name,
+        COUNT(*) as users,
+        COALESCE(SUM(CASE WHEN up.lesson_status IN ('completed', 'passed') THEN 1 ELSE 0 END), 0) as completed
+      FROM users u
+      LEFT JOIN user_progress up ON u.id = up.user_id
+      WHERE u.role = 'user'
+      GROUP BY school
+      ORDER BY users DESC
+      LIMIT 10
+    `);
+
+    const summary = summaryResult.rows[0];
+    const completionRate = completionRateResult.rows[0]?.completion_rate || 0;
+
+    res.json({
+      success: true,
+      summary: {
+        totalUsers: parseInt(summary.total_users) || 0,
+        newUsers: parseInt(summary.new_users) || 0,
+        totalEnrollments: parseInt(summary.total_enrollments) || 0,
+        newEnrollments: parseInt(summary.new_enrollments) || 0,
+        totalCertificates: parseInt(summary.total_certificates) || 0,
+        newCertificates: parseInt(summary.new_certificates) || 0,
+        completionRate: Math.round(completionRate) || 0,
+        completionRateChange: 0,
+        avgTimeSpent: parseInt(summary.avg_time_spent) || 0
+      },
+      userActivity: userActivityResult.rows,
+      statusDistribution: statusResult.rows,
+      completionTrend: completionTrendResult.rows,
+      scoreDistribution: scoreDistResult.rows,
+      schoolsData: schoolsResult.rows
+    });
+  } catch (error) {
+    console.error('Analytics error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get analytics' });
+  }
+});
+
 // Get all users with progress
 router.get('/users', async (req, res) => {
   try {
