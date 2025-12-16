@@ -19,7 +19,6 @@ import AdminUserDetail from './pages/admin/UserDetail';
 import AdminAnalytics from './pages/admin/Analytics';
 
 // Components
-import Navbar from './components/Navbar';
 import Loading from './components/Loading';
 
 // Protected Route wrapper
@@ -57,8 +56,6 @@ function App() {
 
   return (
     <div className="app">
-      {user && <Navbar />}
-      
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />

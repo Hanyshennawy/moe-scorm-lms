@@ -55,13 +55,30 @@ const Profile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await api.put('/users/profile', formData);
+      // Only send the editable fields
+      const updateData = {
+        name: formData.name,
+        phone: formData.phone,
+        school: formData.school,
+        oracle_number: formData.oracle_number,
+        subject_taught: formData.subject_taught
+      };
+      
+      console.log('Sending profile update:', updateData);
+      const response = await api.put('/users/profile', updateData);
+      console.log('Profile update response:', response.data);
+      
       setProfile(response.data.user);
       setUser({ ...user, name: response.data.user.name });
       setEditing(false);
       toast.success('Profile updated successfully');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update profile');
+      console.error('Profile update error:', err.response?.data || err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error ||
+                          err.message ||
+                          'Failed to update profile';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
